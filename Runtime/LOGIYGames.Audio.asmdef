@@ -1,0 +1,17 @@
+{
+    "name": "LOGIYGames.Audio",
+    "rootNamespace": "",
+    "references": [
+        "GUID:abe6ef3e81d782746ba5f07ae0d2b913",
+        "GUID:893abd5ee81be1e4ebdde35ab9f8eadb"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

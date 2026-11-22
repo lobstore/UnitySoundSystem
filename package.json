@@ -1,0 +1,12 @@
+{
+	"name": "com.logiygames.audio",
+	"displayName":"LOGIYGames Audio",
+	"version": "0.1.0",
+	"unity": "6000.6",
+	"unityRelease": "4f1",
+	"description": "Flexible Audio System",
+	"author": {
+		"name": "LOGIYGames"
+	},
+	"hideInEditor": false
+}
