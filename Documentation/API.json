@@ -1,0 +1,180 @@
+{
+  "contractVersion": "1.0.0",
+  "package": {
+    "name": "com.logiygames.audio",
+    "displayName": "LOGIYGames Audio",
+    "packageVersion": "0.1.0",
+    "unityVersion": "6000.6",
+    "assembly": "LOGIYGames.Audio",
+    "namespace": "LOGIYGames.Audio"
+  },
+  "preferredEntryPoint": "SoundManager.Instance.CreateSoundBuilder().WithPosition(position).Play(soundData)",
+  "agentInstructions": [
+    "Add one SoundManager to the scene and assign a prefab with SoundEmitter and AudioSource.",
+    "Create SoundData and assign a non-null AudioClip.",
+    "Use CreateSoundBuilder; optional configuration methods return the same builder.",
+    "Looping sounds require Stop or StopAll; non-looping sounds return to the pool after playback.",
+    "Never mutate FrequentSoundEmitters or SoundEmitter.Node.",
+    "An emitter is returned to the manager instance that rented it.",
+    "Builder position and explicit pitch override persist when the builder is reused."
+  ],
+  "types": [
+    {
+      "name": "AudioExtensions",
+      "kind": "staticClass",
+      "methods": [
+        {
+          "name": "ToLogarithmicVolume",
+          "signature": "static float ToLogarithmicVolume(this float sliderValue)",
+          "inputRange": [
+            0,
+            1
+          ],
+          "output": "decibels [-80,0]; 0 maps to -80 dB"
+        },
+        {
+          "name": "ToLogarithmicFraction",
+          "signature": "static float ToLogarithmicFraction(this float fraction)",
+          "inputRange": [
+            0,
+            1
+          ],
+          "output": "normalized logarithmic fraction [0,1]"
+        }
+      ]
+    },
+    {
+      "name": "SoundData",
+      "kind": "serializableClass",
+      "requiredFields": [
+        "clip: AudioClip"
+      ],
+      "fields": [
+        "mixerGroup: AudioMixerGroup = null",
+        "loop: bool = false",
+        "playOnAwake: bool = false",
+        "frequentSound: bool = false",
+        "mute: bool = false",
+        "bypassEffects: bool = false",
+        "bypassListenerEffects: bool = false",
+        "bypassReverbZones: bool = false",
+        "priority: int = 128",
+        "volume: float = 1 [0,1]",
+        "pitch: float = 1 [-3,3]",
+        "minPitchDelta: float = -0.05",
+        "maxPitchDelta: float = 0.05",
+        "panStereo: float [-1,1]",
+        "spatialBlend: float [0,1]",
+        "reverbZoneMix: float = 1 [0,1.1]",
+        "dopplerLevel: float = 1 [0,5]",
+        "spread: float [0,360]",
+        "minDistance: float = 1 [0,+inf)",
+        "maxDistance: float = 500 [0,+inf)",
+        "ignoreListenerVolume: bool = false",
+        "ignoreListenerPause: bool = false",
+        "rolloffMode: AudioRolloffMode = Logarithmic"
+      ]
+    },
+    {
+      "name": "SoundManager",
+      "baseType": "PersistentSingleton<SoundManager>",
+      "settings": [
+        "soundEmitterPrefab: GameObject (required)",
+        "collectionCheck: bool = true",
+        "defaultCapacity: int = 10",
+        "maxPoolSize: int = 100",
+        "maxSoundInstances: int = 30"
+      ],
+      "publicMembers": [
+        "FrequentSoundEmitters: LinkedList<SoundEmitter> (internal bookkeeping; do not modify)"
+      ],
+      "methods": [
+        {
+          "name": "CreateSoundBuilder",
+          "signature": "SoundBuilder CreateSoundBuilder()"
+        },
+        {
+          "name": "CanPlaySound",
+          "signature": "bool CanPlaySound(SoundData data)",
+          "behavior": "Checks frequent-sound cap; false for null data or frequent sound when cap is 0."
+        },
+        {
+          "name": "Get",
+          "signature": "SoundEmitter Get()",
+          "behavior": "Rents an emitter; throws InvalidOperationException for invalid prefab configuration."
+        },
+        {
+          "name": "ReturnToPool",
+          "signature": "void ReturnToPool(SoundEmitter soundEmitter)",
+          "behavior": "Releases an emitter rented from this manager; null and already-released emitters are ignored."
+        },
+        {
+          "name": "StopAll",
+          "signature": "void StopAll()",
+          "behavior": "Stops and releases all active emitters."
+        }
+      ]
+    },
+    {
+      "name": "SoundBuilder",
+      "kind": "class",
+      "constructor": "SoundBuilder(SoundManager soundManager)",
+      "methods": [
+        {
+          "name": "WithPosition",
+          "signature": "SoundBuilder WithPosition(Vector3 position)",
+          "returns": "this"
+        },
+        {
+          "name": "WithRandomPitch",
+          "signature": "SoundBuilder WithRandomPitch(float pitchMinDelta, float pitchMaxDelta)",
+          "returns": "this",
+          "throws": "ArgumentOutOfRangeException when min > max"
+        },
+        {
+          "name": "Play",
+          "signature": "void Play(SoundData soundData)",
+          "behavior": "Logs and returns for null data or null clip; otherwise rents emitter and starts playback."
+        }
+      ]
+    },
+    {
+      "name": "SoundEmitter",
+      "baseType": "MonoBehaviour",
+      "requiredComponent": "AudioSource",
+      "properties": [
+        "Data: SoundData (public get, private set; null after pool release)",
+        "Node: LinkedListNode<SoundEmitter> (pool bookkeeping; do not modify)"
+      ],
+      "methods": [
+        {
+          "name": "Initialize",
+          "signature": "void Initialize(SoundData data)",
+          "throws": "ArgumentNullException for null data"
+        },
+        {
+          "name": "Play",
+          "signature": "void Play()",
+          "throws": "InvalidOperationException before Initialize"
+        },
+        {
+          "name": "Stop",
+          "signature": "void Stop()",
+          "behavior": "Stops playback and returns to owning manager"
+        },
+        {
+          "name": "WithRandomPitch",
+          "signature": "void WithRandomPitch(float min = -0.05f, float max = 0.05f)",
+          "throws": "InvalidOperationException before Initialize; ArgumentOutOfRangeException when min > max"
+        }
+      ]
+    }
+  ],
+  "minimalExample": "SoundManager.Instance.CreateSoundBuilder().WithPosition(transform.position).Play(clickSound);",
+  "compatibilityNotes": [
+    "Unity 6000.6",
+    "Uses UnityEngine.Pool and existing project Core/Extensions assembly references",
+    "Original public method names are retained",
+    "No .meta files are changed"
+  ]
+}
